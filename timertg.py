@@ -36,7 +36,7 @@ def render_progressbar(total, iteration, prefix='', suffix='', length=30, fill='
 
 def main():
     global bot, message_id_dict
-    load_dotenv("tok.env")
+    load_dotenv("token.env")
     telegram_token = os.getenv("TELEGRAM_TOKEN")
     tg_chat_id = os.getenv("TG_CHAT_ID")
     message_id_dict = {}
