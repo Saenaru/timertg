@@ -3,7 +3,7 @@ from pytimeparse import parse
 from dotenv import load_dotenv
 import ptbot
 
-def wait(chat_id, question):
+def wait(bot, message_id_dict, chat_id, question):
     time_seconds = parse(question)
     message_id = bot.send_message(
         chat_id, 
@@ -11,17 +11,19 @@ def wait(chat_id, question):
     )
     message_id_dict[message_id] = time_seconds
     bot.create_countdown(
-        time_seconds, 
-        notify_progress, 
-        chat_id=chat_id, 
-        message_id=message_id
+        time_seconds,
+        notify_progress,
+        chat_id=chat_id,
+        message_id=message_id,
+        bot=bot,
+        message_id_dict=message_id_dict
     )
-    bot.create_timer(time_seconds, choose, author_id=chat_id)
+    bot.create_timer(time_seconds, choose, bot=bot, author_id=chat_id)
 
-def choose(author_id):
+def choose(bot, author_id):
     bot.send_message(author_id, "Время вышло!")
 
-def notify_progress(secs_left, chat_id, message_id):
+def notify_progress(secs_left, message_id_dict, chat_id, message_id, bot):
     total_time = message_id_dict[message_id]
     progressbar = render_progressbar(total_time, total_time - secs_left)
     message_content = "Осталось {} секунд.\n{}".format(secs_left, progressbar)
@@ -35,13 +37,13 @@ def render_progressbar(total, iteration, prefix='', suffix='', length=30, fill='
     return "{0} |{1}| {2}% {3}".format(prefix, pbar, percent, suffix)
 
 def main():
-    global bot, message_id_dict
     load_dotenv("token.env")
     telegram_token = os.getenv("TELEGRAM_TOKEN")
     tg_chat_id = os.getenv("TG_CHAT_ID")
     message_id_dict = {}
     bot = ptbot.Bot(telegram_token)
-    bot.reply_on_message(wait)
+    
+    bot.reply_on_message(lambda chat_id, text: wait(bot, message_id_dict, chat_id, text))
     bot.run_bot()
 
 if __name__ == '__main__':
